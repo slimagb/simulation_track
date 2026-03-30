@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulation Chiffre d'Affaires-Boubacar DIATTA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#060C1A;--bg2:#0D1528;--bg3:#131E35;--bg4:#1A2845;
+  --gold:#F0A500;--gold2:#FFD166;--gold3:#7A5200;
+  --blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--red:#EF4444;
+  --text:#F0F4FF;--text2:#8FA0C0;--text3:#4A5C80;
+  --border:#1E2F50;--border2:#263A5E;
+  --card:rgba(13,21,40,.8);
+  --r:12px; --r2:8px;
+  --shadow:0 8px 32px rgba(0,0,0,.5);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
+
+/* ── Background effect ── */
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 80% 60% at 20% 0%,rgba(59,130,246,.07) 0%,transparent 60%),
+  radial-gradient(ellipse 60% 40% at 80% 100%,rgba(240,165,0,.05) 0%,transparent 60%);
+  pointer-events:none;z-index:0}
+
+/* ── Topbar ── */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(6,12,26,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;height:60px;gap:24px}
+.topbar-brand{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-logo{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.topbar-logo svg{width:20px;height:20px}
+.topbar-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:.5px;color:var(--text)}
+.topbar-sub{font-size:11px;color:var(--text2);letter-spacing:.3px}
+.topbar-sep{width:1px;height:32px;background:var(--border);flex-shrink:0}
+.nav{display:flex;gap:4px;flex:1}
+.nav-btn{padding:6px 16px;border-radius:6px;border:none;background:transparent;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap;letter-spacing:.2px}
+.nav-btn:hover{background:var(--bg3);color:var(--text)}
+.nav-btn.active{background:var(--gold);color:#000;font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.badge-live{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--green);font-family:'IBM Plex Mono',monospace}
+.badge-live::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{opacity:.8;box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+.btn-export{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.btn-export:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ── Pages ── */
+.page{display:none;padding:28px 32px;position:relative;z-index:1;animation:fadeIn .3s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Section header ── */
+.section-hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.section-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:2px;text-transform:uppercase}
+.section-sub{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text);margin-top:4px}
+
+/* ── Filter bar ── */
+.filter-bar{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;align-items:center}
+.filter-label{font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-right:4px}
+.filter-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.filter-btn.active,.filter-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(240,165,0,.08)}
+.filter-sep{width:1px;height:20px;background:var(--border);margin:0 4px}
+
+/* ── KPI Cards ── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;position:relative;overflow:hidden;transition:border-color .2s,transform .15s}
+.kpi:hover{border-color:var(--border2);transform:translateY(-1px)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kpi-accent,var(--gold))}
+.kpi-label{font-size:11px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;font-weight:500}
+.kpi-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--text);line-height:1;margin-bottom:6px}
+.kpi-sub{font-size:11px;color:var(--text3)}
+.kpi-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;margin-top:6px}
+.kpi-badge.pos{background:rgba(16,185,129,.15);color:var(--green)}
+.kpi-badge.neg{background:rgba(239,68,68,.12);color:var(--red)}
+.kpi-badge.neu{background:rgba(240,165,0,.12);color:var(--gold)}
+.kpi-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);opacity:.06;font-size:56px}
+
+/* ── Charts ── */
+.chart-grid{display:grid;gap:16px;margin-bottom:20px}
+.chart-grid.cols2{grid-template-columns:1fr 1fr}
+.chart-grid.cols3{grid-template-columns:2fr 1fr}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px}
+.chart-card-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.chart-card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
+.chart-card-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.chart-legend{display:flex;gap:16px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.chart-wrap{position:relative}
+
+/* ── Simulation panel ── */
+.sim-layout{display:grid;grid-template-columns:380px 1fr;gap:20px}
+.sim-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:24px;position:sticky;top:80px;max-height:calc(100vh - 100px);overflow-y:auto}
+.sim-panel::-webkit-scrollbar{width:4px}
+.sim-panel::-webkit-scrollbar-track{background:transparent}
+.sim-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.sim-section-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.sim-group{margin-bottom:22px}
+
+/* slider row */
+.slider-row{margin-bottom:14px}
+.slider-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.slider-label{font-size:12px;color:var(--text);font-weight:500}
+.slider-mod-badge{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--text3);background:var(--bg3);padding:1px 6px;border-radius:3px}
+.slider-val{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:600}
+.slider-track{position:relative}
+input[type=range]{width:100%;height:4px;border-radius:2px;-webkit-appearance:none;appearance:none;background:var(--bg4);cursor:pointer;outline:none}
+input[type=range]::-webkit-slider-thumb{width:16px;height:16px;border-radius:50%;background:var(--gold);-webkit-appearance:none;appearance:none;border:2px solid var(--bg);cursor:pointer;box-shadow:0 0 0 3px rgba(240,165,0,.15);transition:box-shadow .2s}
+input[type=range]:hover::-webkit-slider-thumb{box-shadow:0 0 0 5px rgba(240,165,0,.25)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);cursor:pointer}
+.slider-minmax{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:3px;font-family:'IBM Plex Mono',monospace}
+
+/* toggle switch */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.toggle-info{}
+.toggle-label{font-size:12px;color:var(--text);font-weight:500}
+.toggle-desc{font-size:10px;color:var(--text3);margin-top:2px}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--bg4);border-radius:12px;cursor:pointer;transition:.25s;border:1px solid var(--border2)}
+.toggle-slider::before{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:16px;height:16px;background:var(--text3);border-radius:50%;transition:.25s}
+input:checked+.toggle-slider{background:rgba(240,165,0,.2);border-color:var(--gold)}
+input:checked+.toggle-slider::before{transform:translate(20px,-50%);background:var(--gold)}
+
+/* tariff editor */
+.tariff-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.tariff-op{display:flex;align-items:center;gap:8px}
+.tariff-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tariff-name{font-size:12px;color:var(--text);font-weight:500}
+.tariff-cat{font-size:10px;color:var(--text3)}
+.tariff-input-wrap{display:flex;align-items:center;gap:6px}
+.tariff-input{width:80px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:4px 8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;outline:none;transition:border-color .2s}
+.tariff-input:focus{border-color:var(--gold)}
+.tariff-unit{font-size:10px;color:var(--text3)}
+
+/* results panel */
+.results-panel{display:flex;flex-direction:column;gap:16px}
+
+/* impact waterfall */
+.waterfall-bar{display:flex;align-items:center;gap:10px;padding:6px 0}
+.wf-label{font-size:11px;color:var(--text2);width:160px;flex-shrink:0}
+.wf-track{flex:1;height:20px;background:var(--bg3);border-radius:3px;overflow:visible;position:relative}
+.wf-fill{height:100%;border-radius:3px;transition:width .4s cubic-bezier(.4,0,.2,1);min-width:2px;position:relative}
+.wf-val{position:absolute;right:-72px;top:50%;transform:translateY(-50%);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold);white-space:nowrap;font-weight:500}
+
+/* operator breakdown table */
+.op-table{width:100%;border-collapse:collapse}
+.op-table th{text-align:left;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--border)}
+.op-table td{padding:9px 10px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
+.op-table tr:hover td{background:rgba(255,255,255,.02)}
+.op-table .mono{font-family:'IBM Plex Mono',monospace;font-size:11px}
+.op-table .impact-cell{color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:11px}
+.op-table .impact-cell.neg{color:var(--red)}
+.op-bar-mini{height:3px;background:var(--bg4);border-radius:2px;margin-top:3px;overflow:hidden}
+.op-bar-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .4s}
+
+/* evolution page */
+.evo-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+
+/* tooltip */
+.custom-tooltip{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text);pointer-events:none;z-index:1000;opacity:0;transition:opacity .15s;box-shadow:var(--shadow)}
+
+/* reset btn */
+.btn-reset{width:100%;padding:9px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;margin-top:16px}
+.btn-reset:hover{border-color:var(--red);color:var(--red)}
+.btn-apply{width:100%;padding:10px;border-radius:8px;border:none;background:var(--gold);color:#000;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px;letter-spacing:.3px}
+.btn-apply:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(240,165,0,.3)}
+
+/* scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* Responsive */
+@media(max-width:1100px){
+  .sim-layout{grid-template-columns:1fr}
+  .sim-panel{position:static;max-height:none}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:700px){
+  .topbar{padding:0 16px}
+  .page{padding:16px}
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .chart-grid.cols2,.chart-grid.cols3,.evo-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M10 2L2 7v6l8 5 8-5V7L10 2z" stroke="#000" stroke-width="1.5" fill="none"/><path d="M2 7l8 5 8-5" stroke="#000" stroke-width="1.5"/></svg>
+    </div>
+    <div>
+      <div class="topbar-title">PORT AUTONOME DE DAKAR</div>
+      <div class="topbar-sub">Simulation Chiffre d'Affaires · 2024–2025</div>
+    </div>
+  </div>
+  <div class="topbar-sep"></div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showPage('overview',this)">Vue d'ensemble</button>
+    <button class="nav-btn" onclick="showPage('simulation',this)">Simulation</button>
+    <button class="nav-btn" onclick="showPage('operateurs',this)">Opérateurs</button>
+    <button class="nav-btn" onclick="showPage('evolution',this)">Évolution</button>
+  </nav>
+  <div class="topbar-right">
+    <span class="badge-live">LIVE</span>
+    <button class="btn-export" onclick="window.print()">⬇ Exporter</button>
+  </div>
+</header>
+
+<!-- PAGE 1: VUE D'ENSEMBLE -->
+<div id="page-overview" class="page active">
+  <div class="section-hdr">
+    <div>
+      <div class="section-title">Tableau de bord</div>
+      <div class="section-sub">Vue d'ensemble — Base consolidée 2024–2025</div>
+    </div>
+    <div class="filter-bar" style="margin:0">
+      <span class="filter-label">Période</span>
+      <button class="filter-btn active" onclick="setFilter('all',this,'ov')">Tout</button>
+      <button class="filter-btn" onclick="setFilter('2024',this,'ov')">2024</button>
+      <button class="filter-btn" onclick="setFilter('2025',this,'ov')">2025</button>
+      <div class="filter-sep"></div>
+      <button class="filter-btn active" onclick="setTrim('all',this,'ov')">T1-T4</button>
+      <button class="filter-btn" onclick="setTrim('T1',this,'ov')">T1</button>
+      <button class="filter-btn" onclick="setTrim('T2',this,'ov')">T2</button>
+      <button class="filter-btn" onclick="setTrim('T3',this,'ov')">T3</button>
+      <button class="filter-btn" onclick="setTrim('T4',this,'ov')">T4</button>
+    </div>
+  </div>
+
+  <div class="kpi-row" id="ov-kpis"></div>
+
+  <div class="chart-grid cols3">
+    <div class="chart-card">
+      <div class="chart-card-hdr">
+        <div>
+          <div class="chart-card-title">Évolution mensuelle — CA Base vs Simulé</div>
+          <div class="chart-card-sub">Chiffre d'affaires en milliards FCFA</div>
+        </div>
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#3B82F6"></span>Base</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#F0A500"></span>Simulé</span>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-monthly" height="200"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-hdr">
+        <div>
+          <div class="chart-card-title">Répartition par opérateur</div>
+          <div class="chart-card-sub">CA Base — part en %</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-donut" height="200"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-grid cols2">
+    <div class="chart-card">
+      <div class="chart-card-hdr">
+        <div><div class="chart-card-title">Volume de camions par opérateur</div>
+        <div class="chart-card-sub">Cumul sur la période sélectionnée</div></div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-volume" height="220"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-hdr">
+        <div><div class="chart-card-title">CA par catégorie d'opérateur</div>
+        <div class="chart-card-sub">Terminaux · Pétroliers · Manutention · Divers</div></div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-category" height="220"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: SIMULATION -->
+<div id="page-simulation" class="page">
+  <div class="section-hdr">
+    <div>
+      <div class="section-title">Moteur de simulation</div>
+      <div class="section-sub">Paramétrez les modalités tarifaires en temps réel</div>
+    </div>
+    <div class="filter-bar" style="margin:0">
+      <span class="filter-label">Période</span>
+      <button class="filter-btn active" onclick="setFilter('all',this,'sim')">Tout</button>
+      <button class="filter-btn" onclick="setFilter('2024',this,'sim')">2024</button>
+      <button class="filter-btn" onclick="setFilter('2025',this,'sim')">2025</button>
+    </div>
+  </div>
+
+  <div class="sim-layout">
+    <!-- CONTROLS -->
+    <div class="sim-panel">
+      <div class="sim-group">
+        <div class="sim-section-title">Tarifs opérateurs (FCFA / camion)</div>
+        <div id="tariff-editor"></div>
+      </div>
+
+      <div class="sim-group">
+        <div class="sim-section-title">Modalités tarifaires</div>
+
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-label">% Camions bennes <span class="slider-mod-badge">MOD1</span></span>
+            <span class="slider-val" id="v-m1">40%</span>
+          </div>
+          <input type="range" min="0" max="100" step="5" value="40" id="s-m1" oninput="updateSim()">
+          <div class="slider-minmax"><span>0%</span><span>100%</span></div>
+          <div class="tariff-desc" style="font-size:10px;color:var(--text3);margin-top:3px">Tarif 1 500 → 2 000 FCFA (Δ +500)</div>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-label">% Triangulation <span class="slider-mod-badge">MOD2</span></span>
+            <span class="slider-val" id="v-m2">15%</span>
+          </div>
+          <input type="range" min="0" max="100" step="5" value="15" id="s-m2" oninput="updateSim()">
+          <div class="slider-minmax"><span>0%</span><span>100%</span></div>
+          <div class="tariff-desc" style="font-size:10px;color:var(--text3);margin-top:3px">Tarif 3 000 → 5 000 FCFA (Δ +2 000)</div>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-label">Stationnement intérieur <span class="slider-mod-badge">MOD3</span></span>
+            <span class="slider-val" id="v-m3">2h</span>
+          </div>
+          <input type="range" min="0" max="8" step="0.5" value="2" id="s-m3" oninput="updateSim()">
+          <div class="slider-minmax"><span>0h</span><span>8h</span></div>
+          <div class="tariff-desc" style="font-size:10px;color:var(--text3);margin-top:3px">Nouveau tarif 2 000 FCFA / heure</div>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-label">Stationnement extérieur <span class="slider-mod-badge">MOD4</span></span>
+            <span class="slider-val" id="v-m4">2h</span>
+          </div>
+          <input type="range" min="0" max="8" step="0.5" value="2" id="s-m4" oninput="updateSim()">
+          <div class="slider-minmax"><span>0h</span><span>8h</span></div>
+          <div class="tariff-desc" style="font-size:10px;color:var(--text3);margin-top:3px">Nouveau tarif 5 000 FCFA / heure</div>
+        </div>
+      </div>
+
+      <div class="sim-group">
+        <div class="sim-section-title">Surcharges opérateurs (au-delà du seuil)</div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-label">Surcharge DPW <span class="slider-mod-badge">MOD5</span></div>
+            <div class="toggle-desc">+5 000 FCFA / camion au-delà de 1 000/mois</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="t-m5" checked onchange="updateSim()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-label">Surcharge TVS <span class="slider-mod-badge">MOD6</span></div>
+            <div class="toggle-desc">+5 000 FCFA / camion au-delà de 100/mois</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="t-m6" checked onchange="updateSim()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-label">Surcharge DKT <span class="slider-mod-badge">MOD7</span></div>
+            <div class="toggle-desc">+5 000 FCFA / camion au-delà de 50/mois</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="t-m7" checked onchange="updateSim()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-label">Surcharge Hydro/ORYX <span class="slider-mod-badge">MOD8</span></div>
+            <div class="toggle-desc">+5 000 FCFA / camion au-delà de 30/mois</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="t-m8" checked onchange="updateSim()"><span class="toggle-slider"></span></label>
+        </div>
+
+        <button class="btn-apply" onclick="updateSim()">↻ Recalculer</button>
+        <button class="btn-reset" onclick="resetSim()">Réinitialiser les paramètres</button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-panel">
+      <div class="kpi-row" id="sim-kpis" style="grid-template-columns:repeat(2,1fr)"></div>
+
+      <div class="chart-card">
+        <div class="chart-card-hdr">
+          <div><div class="chart-card-title">Impact par modalité (FCFA)</div>
+          <div class="chart-card-sub">Contribution de chaque levier tarifaire</div></div>
+        </div>
+        <div id="waterfall-container" style="padding:10px 0 0 0"></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-hdr">
+          <div><div class="chart-card-title">CA mensuel — Base vs Simulé</div>
+          <div class="chart-card-sub">Impact de la simulation par mois (milliards FCFA)</div></div>
+          <div class="chart-legend">
+            <span class="legend-item"><span class="legend-dot" style="background:#3B82F6"></span>Base</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#F0A500"></span>Simulé</span>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-sim-monthly" height="180"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-hdr">
+          <div><div class="chart-card-title">Tableau récapitulatif par opérateur</div>
+          <div class="chart-card-sub">CA Base · CA Simulé · Impact</div></div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="op-table" id="sim-table">
+            <thead><tr>
+              <th>Opérateur</th><th>Catégorie</th>
+              <th>Tarif (F)</th><th>Camions</th>
+              <th>CA Base</th><th>CA Simulé</th>
+              <th>Impact</th><th>%</th>
+            </tr></thead>
+            <tbody id="sim-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: OPÉRATEURS -->
+<div id="page-operateurs" class="page">
+  <div class="section-hdr">
+    <div>
+      <div class="section-title">Analyse détaillée</div>
+      <div class="section-sub">Performance par opérateur</div>
+    </div>
+    <div class="filter-bar" style="margin:0">
+      <button class="filter-btn active" onclick="setFilter('all',this,'op')">Tout</button>
+      <button class="filter-btn" onclick="setFilter('2024',this,'op')">2024</button>
+      <button class="filter-btn" onclick="setFilter('2025',this,'op')">2025</button>
+    </div>
+  </div>
+
+  <div class="kpi-row" id="op-kpis" style="grid-template-columns:repeat(4,1fr)"></div>
+
+  <div class="chart-grid cols2" style="margin-bottom:16px">
+    <div class="chart-card">
+      <div class="chart-card-hdr">
+        <div><div class="chart-card-title">CA par opérateur — Base vs Simulé</div></div>
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#3B82F6"></span>Base</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#F0A500"></span>Simulé</span>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-op-bars" height="280"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-hdr"><div><div class="chart-card-title">Volume par opérateur</div></div></div>
+      <div class="chart-wrap"><canvas id="chart-op-volume" height="280"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-hdr"><div><div class="chart-card-title">Détail complet par opérateur</div></div></div>
+    <div style="overflow-x:auto">
+      <table class="op-table" id="op-detail-table">
+        <thead><tr>
+          <th>Opérateur</th><th>Catégorie</th><th>Tarif Base</th>
+          <th>Total Camions</th><th>Part Volume</th>
+          <th>CA Base</th><th>CA Simulé</th><th>Impact</th><th>Taux Impact</th>
+        </tr></thead>
+        <tbody id="op-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4: ÉVOLUTION -->
+<div id="page-evolution" class="page">
+  <div class="section-hdr">
+    <div>
+      <div class="section-title">Analyse temporelle</div>
+      <div class="section-sub">Tendances et évolution 2024–2025</div>
+    </div>
+  </div>
+
+  <div class="kpi-row" id="evo-kpis"></div>
+
+  <div class="chart-card" style="margin-bottom:16px">
+    <div class="chart-card-hdr">
+      <div><div class="chart-card-title">Flux quotidiens — Camions entrants (2024–2025)</div>
+      <div class="chart-card-sub">Somme journalière tous opérateurs</div></div>
+    </div>
+    <div class="chart-wrap"><canvas id="chart-daily" height="160"></canvas></div>
+  </div>
+
+  <div class="evo-grid">
+    <div class="chart-card">
+      <div class="chart-card-hdr">
+        <div><div class="chart-card-title">Comparaison 2024 vs 2025</div>
+        <div class="chart-card-sub">Mêmes mois disponibles (Juil–Oct)</div></div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-yoy" height="240"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-hdr">
+        <div><div class="chart-card-title">Répartition trimestrielle</div>
+        <div class="chart-card-sub">Volume camions par trimestre</div></div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-trim" height="240"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════════════════════ */
+const MONTHLY=[{"annee":2024,"mois":1,"trim":"T1","label":"Jan 2024","DPW":35811,"TVS":8409,"DAKAR (DKT)":3541,"VIVO":1188,"SEN":1128,"ORYX (Hydro)":420,"ERES":157,"TM-N":1686,"TM-S":6478,"QPE":1343,"SSB":0,"total":60161},{"annee":2024,"mois":2,"trim":"T1","label":"Fév 2024","DPW":36310,"TVS":6427,"DAKAR (DKT)":2506,"VIVO":779,"SEN":709,"ORYX (Hydro)":495,"ERES":253,"TM-N":1240,"TM-S":5380,"QPE":1101,"SSB":0,"total":55200},{"annee":2024,"mois":3,"trim":"T1","label":"Mar 2024","DPW":41184,"TVS":5161,"DAKAR (DKT)":2996,"VIVO":1085,"SEN":812,"ORYX (Hydro)":528,"ERES":321,"TM-N":1590,"TM-S":4430,"QPE":1478,"SSB":36,"total":59621},{"annee":2024,"mois":4,"trim":"T2","label":"Avr 2024","DPW":41237,"TVS":8387,"DAKAR (DKT)":2531,"VIVO":868,"SEN":1181,"ORYX (Hydro)":569,"ERES":110,"TM-N":2535,"TM-S":5244,"QPE":1733,"SSB":39,"total":64434},{"annee":2024,"mois":5,"trim":"T2","label":"Mai 2024","DPW":43056,"TVS":8356,"DAKAR (DKT)":3148,"VIVO":1102,"SEN":1073,"ORYX (Hydro)":635,"ERES":186,"TM-N":2357,"TM-S":5348,"QPE":1791,"SSB":31,"total":67083},{"annee":2024,"mois":6,"trim":"T2","label":"Jun 2024","DPW":33223,"TVS":3951,"DAKAR (DKT)":2258,"VIVO":1209,"SEN":1331,"ORYX (Hydro)":270,"ERES":240,"TM-N":1974,"TM-S":3965,"QPE":1273,"SSB":38,"total":49732},{"annee":2024,"mois":7,"trim":"T3","label":"Jul 2024","DPW":34340,"TVS":5618,"DAKAR (DKT)":3187,"VIVO":1355,"SEN":1277,"ORYX (Hydro)":384,"ERES":130,"TM-N":2188,"TM-S":7379,"QPE":1406,"SSB":63,"total":57327},{"annee":2024,"mois":8,"trim":"T3","label":"Août 2024","DPW":35993,"TVS":8239,"DAKAR (DKT)":3874,"VIVO":971,"SEN":1218,"ORYX (Hydro)":399,"ERES":183,"TM-N":1497,"TM-S":5314,"QPE":1376,"SSB":68,"total":59132},{"annee":2024,"mois":9,"trim":"T3","label":"Sep 2024","DPW":35392,"TVS":3017,"DAKAR (DKT)":3258,"VIVO":1006,"SEN":1107,"ORYX (Hydro)":424,"ERES":63,"TM-N":1855,"TM-S":6975,"QPE":1605,"SSB":56,"total":54758},{"annee":2024,"mois":10,"trim":"T4","label":"Oct 2024","DPW":39941,"TVS":7606,"DAKAR (DKT)":3462,"VIVO":1337,"SEN":777,"ORYX (Hydro)":503,"ERES":185,"TM-N":2958,"TM-S":5713,"QPE":1323,"SSB":22,"total":63827},{"annee":2024,"mois":11,"trim":"T4","label":"Nov 2024","DPW":37717,"TVS":4024,"DAKAR (DKT)":3618,"VIVO":1054,"SEN":906,"ORYX (Hydro)":432,"ERES":160,"TM-N":2957,"TM-S":6012,"QPE":1205,"SSB":31,"total":58116},{"annee":2024,"mois":12,"trim":"T4","label":"Déc 2024","DPW":42173,"TVS":5407,"DAKAR (DKT)":2918,"VIVO":1238,"SEN":796,"ORYX (Hydro)":304,"ERES":258,"TM-N":1864,"TM-S":6478,"QPE":1211,"SSB":21,"total":62668},{"annee":2025,"mois":7,"trim":"T3","label":"Jul 2025","DPW":7182,"TVS":583,"DAKAR (DKT)":343,"VIVO":303,"SEN":165,"ORYX (Hydro)":24,"ERES":22,"TM-N":361,"TM-S":484,"QPE":188,"SSB":86,"total":9741},{"annee":2025,"mois":8,"trim":"T3","label":"Août 2025","DPW":36942,"TVS":5526,"DAKAR (DKT)":2442,"VIVO":1372,"SEN":1381,"ORYX (Hydro)":128,"ERES":73,"TM-N":2215,"TM-S":5163,"QPE":1057,"SSB":615,"total":56914},{"annee":2025,"mois":9,"trim":"T3","label":"Sep 2025","DPW":35835,"TVS":6208,"DAKAR (DKT)":2274,"VIVO":1329,"SEN":725,"ORYX (Hydro)":73,"ERES":64,"TM-N":2986,"TM-S":5892,"QPE":977,"SSB":770,"total":57133},{"annee":2025,"mois":10,"trim":"T4","label":"Oct 2025","DPW":33723,"TVS":4973,"DAKAR (DKT)":1731,"VIVO":1101,"SEN":465,"ORYX (Hydro)":117,"ERES":105,"TM-N":3239,"TM-S":6038,"QPE":732,"SSB":662,"total":52886}];
+
+const OPS=['DPW','TVS','DAKAR (DKT)','VIVO','SEN','ORYX (Hydro)','ERES','TM-N','TM-S','QPE','SSB'];
+const OP_LABELS={'DPW':'DPW','TVS':'TVS','DAKAR (DKT)':'Dakar Terminal','VIVO':'VIVO','SEN':'SEN','ORYX (Hydro)':'ORYX Hydro','ERES':'ERES','TM-N':'TM-Nord','TM-S':'TM-Sud','QPE':'QPE','SSB':'SSB'};
+const OP_CAT={'DPW':'Terminaux','TVS':'Terminaux','DAKAR (DKT)':'Terminaux','VIVO':'Pétroliers','SEN':'Pétroliers','ORYX (Hydro)':'Pétroliers','ERES':'Pétroliers','TM-N':'Manutention','TM-S':'Manutention','QPE':'Divers','SSB':'Divers'};
+const TARIF_BASE={'DPW':1500,'TVS':1500,'DAKAR (DKT)':1500,'VIVO':2500,'SEN':2500,'ORYX (Hydro)':2500,'ERES':2500,'TM-N':1500,'TM-S':1500,'QPE':1500,'SSB':2000};
+const OP_COLORS=['#3B82F6','#06B6D4','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316','#84CC16','#A78BFA'];
+const CAT_COLORS={'Terminaux':'#3B82F6','Pétroliers':'#F59E0B','Manutention':'#10B981','Divers':'#8B5CF6'};
+
+/* Current state */
+let currentTarifs = {...TARIF_BASE};
+let filters = {ov:{yr:'all',tr:'all'}, sim:{yr:'all'}, op:{yr:'all'}};
+let charts = {};
+
+/* ══════════════════════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════════════════════ */
+const fmt  = n => Math.round(n).toLocaleString('fr-FR');
+const fmtB = n => (n/1e9).toFixed(3) + ' Mrd';
+const fmtM = n => (n/1e6).toFixed(1) + ' Mio';
+const pct  = (a,b) => b>0 ? ((a-b)/b*100).toFixed(1)+'%' : '—';
+const sign  = n => n>=0 ? '+' : '';
+
+function getFiltered(page='ov') {
+  const f = filters[page] || {yr:'all',tr:'all'};
+  return MONTHLY.filter(r => {
+    const okYr = f.yr==='all' || r.annee==f.yr;
+    const okTr = !f.tr || f.tr==='all' || r.trim===f.tr;
+    return okYr && okTr;
+  });
+}
+
+function setFilter(yr, btn, page) {
+  if (!filters[page]) filters[page]={yr:'all',tr:'all'};
+  filters[page].yr = yr;
+  btn.closest('.filter-bar').querySelectorAll('.filter-btn').forEach(b=>{
+    if(['all','2024','2025'].includes(b.textContent.trim())) b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  refreshPage(page);
+}
+function setTrim(tr, btn, page) {
+  if (!filters[page]) filters[page]={yr:'all',tr:'all'};
+  filters[page].tr = tr;
+  btn.closest('.filter-bar').querySelectorAll('.filter-btn').forEach(b=>{
+    if(['T1-T4','T1','T2','T3','T4'].includes(b.textContent.trim())) b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  refreshPage(page);
+}
+
+function simCA(row) {
+  const m1 = +document.getElementById('s-m1').value/100;
+  const m2 = +document.getElementById('s-m2').value/100;
+  const m3 = +document.getElementById('s-m3').value;
+  const m4 = +document.getElementById('s-m4').value;
+  const m5 = document.getElementById('t-m5').checked;
+  const m6 = document.getElementById('t-m6').checked;
+  const m7 = document.getElementById('t-m7').checked;
+  const m8 = document.getElementById('t-m8').checked;
+
+  const totalTrucks = OPS.reduce((s,op)=>s+row[op],0);
+  let base=0, sim=0, opB={}, opS={};
+  const mods = {m1:0,m2:0,m3:0,m4:0,m5:0,m6:0,m7:0,m8:0};
+
+  OPS.forEach(op => {
+    const t = currentTarifs[op];
+    const n = row[op];
+    const b = n * t;
+    base += b; opB[op]=b;
+    let s = b;
+
+    const d1 = n * m1 * 500;
+    const d2 = n * m2 * 2000;
+    const d3 = n * m3 * 2000;
+    const d4 = n * m4 * 5000;
+    s += d1+d2+d3+d4;
+    mods.m1+=d1; mods.m2+=d2; mods.m3+=d3; mods.m4+=d4;
+
+    if(m5 && op==='DPW')        { const d=Math.max(0,n-1000)*5000; s+=d; mods.m5+=d; }
+    if(m6 && op==='TVS')        { const d=Math.max(0,n-100)*5000;  s+=d; mods.m6+=d; }
+    if(m7 && op==='DAKAR (DKT)'){ const d=Math.max(0,n-50)*5000;   s+=d; mods.m7+=d; }
+    if(m8 && op==='ORYX (Hydro)'){ const d=Math.max(0,n-30)*5000;  s+=d; mods.m8+=d; }
+
+    sim+=s; opS[op]=s;
+  });
+  return {base,sim,impact:sim-base,opB,opS,mods};
+}
+
+function calcTotals(rows) {
+  let base=0,sim=0,trucks=0;
+  const mods={m1:0,m2:0,m3:0,m4:0,m5:0,m6:0,m7:0,m8:0};
+  const opB={},opS={};
+  OPS.forEach(op=>{opB[op]=0;opS[op]=0});
+  rows.forEach(r=>{
+    const c=simCA(r);
+    base+=c.base; sim+=c.sim;
+    trucks+=OPS.reduce((s,op)=>s+r[op],0);
+    Object.keys(mods).forEach(k=>mods[k]+=c.mods[k]);
+    OPS.forEach(op=>{opB[op]+=c.opB[op];opS[op]+=c.opS[op]});
+  });
+  return{base,sim,impact:sim-base,trucks,mods,opB,opS};
+}
+
+/* ══════════════════════════════════════════════════════════════
+   KPI CARDS
+══════════════════════════════════════════════════════════════ */
+function renderKPIs(id, data, totals) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  const ip = totals.impact, ipPct = totals.base>0?(ip/totals.base*100).toFixed(1):0;
+  const avgDay = Math.round(totals.trucks / data.length);
+  el.innerHTML = `
+    <div class="kpi" style="--kpi-accent:#3B82F6">
+      <div class="kpi-icon">📊</div>
+      <div class="kpi-label">CA Base</div>
+      <div class="kpi-val">${fmtB(totals.base)}</div>
+      <div class="kpi-sub">${fmt(totals.base)} FCFA</div>
+    </div>
+    <div class="kpi" style="--kpi-accent:#F0A500">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-label">CA Simulé</div>
+      <div class="kpi-val">${fmtB(totals.sim)}</div>
+      <div class="kpi-sub">${fmt(totals.sim)} FCFA</div>
+    </div>
+    <div class="kpi" style="--kpi-accent:${ip>=0?'#10B981':'#EF4444'}">
+      <div class="kpi-icon">📈</div>
+      <div class="kpi-label">Impact Simulation</div>
+      <div class="kpi-val">${fmtM(ip)}</div>
+      <span class="kpi-badge ${ip>=0?'pos':'neg'}">${sign(ip)}${ipPct}%</span>
+    </div>
+    <div class="kpi" style="--kpi-accent:#06B6D4">
+      <div class="kpi-icon">🚛</div>
+      <div class="kpi-label">Total Camions</div>
+      <div class="kpi-val">${fmt(totals.trucks)}</div>
+      <div class="kpi-sub">Moy. ${fmt(avgDay)} / mois</div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CHARTS
+══════════════════════════════════════════════════════════════ */
+const GRID_OPT = { color:'rgba(255,255,255,.05)', drawBorder:false };
+const TICK_OPT = { color:'#4A5C80', font:{family:"'Outfit',sans-serif",size:11} };
+const BASE_OPTS = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{ legend:{display:false}, tooltip:{
+    backgroundColor:'#0D1528', borderColor:'#1E2F50', borderWidth:1,
+    titleColor:'#F0F4FF', bodyColor:'#8FA0C0',
+    titleFont:{family:"'IBM Plex Mono',monospace",size:12},
+    bodyFont:{family:"'Outfit',sans-serif",size:12},
+    padding:12, cornerRadius:8
+  }},
+  animation:{ duration:400, easing:'easeOutQuart' }
+};
+
+function mkChart(id, config) {
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, config);
+  return charts[id];
+}
+
+function buildMonthlyChart(id, data, totals_per_row) {
+  const labels = data.map(r=>r.label);
+  const base   = data.map(r=>+(simCA(r).base/1e9).toFixed(3));
+  const sim    = data.map(r=>+(simCA(r).sim/1e9).toFixed(3));
+  mkChart(id, {
+    type:'bar',
+    data:{ labels, datasets:[
+      { label:'CA Base', data:base, backgroundColor:'rgba(59,130,246,.7)',
+        borderColor:'#3B82F6', borderWidth:1, borderRadius:3 },
+      { label:'CA Simulé', data:sim, backgroundColor:'rgba(240,165,0,.7)',
+        borderColor:'#F0A500', borderWidth:1, borderRadius:3 }
+    ]},
+    options:{...BASE_OPTS, scales:{
+      x:{ grid:GRID_OPT, ticks:{...TICK_OPT, maxRotation:45} },
+      y:{ grid:GRID_OPT, ticks:{...TICK_OPT, callback:v=>v+'B'},
+          title:{display:true,text:'Mrd FCFA',color:'#4A5C80',font:{size:10}} }
+    }}
+  });
+}
+
+function buildDonut(id, data) {
+  const opTotals = {};
+  OPS.forEach(op=>{ opTotals[op]=data.reduce((s,r)=>s+r[op]*currentTarifs[op],0); });
+  const labels=OPS.map(op=>OP_LABELS[op]);
+  const vals=OPS.map(op=>opTotals[op]);
+  mkChart(id,{
+    type:'doughnut',
+    data:{labels, datasets:[{data:vals, backgroundColor:OP_COLORS,
+      borderColor:'#060C1A', borderWidth:2, hoverBorderWidth:3}]},
+    options:{...BASE_OPTS,
+      plugins:{...BASE_OPTS.plugins,
+        legend:{display:true, position:'right',
+          labels:{color:'#8FA0C0',font:{size:11,family:"'Outfit',sans-serif"},
+                  padding:12, boxWidth:10, usePointStyle:true}},
+        tooltip:{...BASE_OPTS.plugins.tooltip,
+          callbacks:{label:ctx=>`${ctx.label}: ${fmtM(ctx.raw)}`}}
+      },
+      cutout:'65%'
+    }
+  });
+}
+
+function buildVolumeBar(id, data) {
+  const vols = OPS.map(op=>data.reduce((s,r)=>s+r[op],0));
+  const sorted = OPS.map((op,i)=>({op,vol:vols[i],color:OP_COLORS[i]}))
+                    .sort((a,b)=>b.vol-a.vol);
+  mkChart(id,{
+    type:'bar',
+    data:{labels:sorted.map(x=>OP_LABELS[x.op]),
+          datasets:[{data:sorted.map(x=>x.vol),
+            backgroundColor:sorted.map(x=>x.color+'CC'),
+            borderColor:sorted.map(x=>x.color), borderWidth:1, borderRadius:4}]},
+    options:{...BASE_OPTS, indexAxis:'y',
+      scales:{
+        x:{grid:GRID_OPT,ticks:{...TICK_OPT,callback:v=>fmt(v)}},
+        y:{grid:{display:false},ticks:TICK_OPT}
+      }
+    }
+  });
+}
+
+function buildCategory(id, data) {
+  const cats=['Terminaux','Pétroliers','Manutention','Divers'];
+  const base=cats.map(cat=>data.reduce((s,r)=>s+OPS.filter(op=>OP_CAT[op]===cat).reduce((ss,op)=>ss+r[op]*currentTarifs[op],0),0));
+  const sim=cats.map(cat=>data.reduce((s,r)=>{
+    const c=simCA(r);
+    return s+OPS.filter(op=>OP_CAT[op]===cat).reduce((ss,op)=>ss+c.opS[op],0);
+  },0));
+  mkChart(id,{
+    type:'bar',
+    data:{labels:cats,datasets:[
+      {label:'Base',data:base.map(v=>+(v/1e9).toFixed(2)),backgroundColor:cats.map(c=>CAT_COLORS[c]+'88'),borderColor:cats.map(c=>CAT_COLORS[c]),borderWidth:1,borderRadius:4},
+      {label:'Simulé',data:sim.map(v=>+(v/1e9).toFixed(2)),backgroundColor:cats.map(c=>CAT_COLORS[c]+'44'),borderColor:cats.map(c=>CAT_COLORS[c]),borderWidth:2,borderDash:[4,2],borderRadius:4}
+    ]},
+    options:{...BASE_OPTS,
+      plugins:{...BASE_OPTS.plugins,legend:{display:true,labels:{color:'#8FA0C0',font:{size:11},boxWidth:10}}},
+      scales:{x:{grid:GRID_OPT,ticks:TICK_OPT},y:{grid:GRID_OPT,ticks:{...TICK_OPT,callback:v=>v+'B'}}}
+    }
+  });
+}
+
+function buildOpBars(id, data) {
+  const opB=OPS.map(op=>+(data.reduce((s,r)=>s+r[op]*currentTarifs[op],0)/1e9).toFixed(3));
+  const opS=OPS.map(op=>+(data.reduce((s,r)=>s+simCA(r).opS[op],0)/1e9).toFixed(3));
+  mkChart(id,{
+    type:'bar',
+    data:{labels:OPS.map(op=>OP_LABELS[op]),datasets:[
+      {label:'CA Base',data:opB,backgroundColor:'rgba(59,130,246,.6)',borderColor:'#3B82F6',borderWidth:1,borderRadius:3},
+      {label:'CA Simulé',data:opS,backgroundColor:'rgba(240,165,0,.6)',borderColor:'#F0A500',borderWidth:1,borderRadius:3}
+    ]},
+    options:{...BASE_OPTS,
+      plugins:{...BASE_OPTS.plugins,legend:{display:true,labels:{color:'#8FA0C0',font:{size:11},boxWidth:10}}},
+      scales:{x:{grid:GRID_OPT,ticks:{...TICK_OPT,maxRotation:30}},
+              y:{grid:GRID_OPT,ticks:{...TICK_OPT,callback:v=>v+'B'}}}
+    }
+  });
+}
+
+function buildOpVolume(id, data) {
+  const vols=OPS.map(op=>data.reduce((s,r)=>s+r[op],0));
+  mkChart(id,{
+    type:'polarArea',
+    data:{labels:OPS.map(op=>OP_LABELS[op]),datasets:[{data:vols,backgroundColor:OP_COLORS.map(c=>c+'99'),borderColor:OP_COLORS,borderWidth:2}]},
+    options:{...BASE_OPTS,scales:{r:{grid:{color:'rgba(255,255,255,.07)'},ticks:{color:'#4A5C80',font:{size:10},backdropColor:'transparent'}}},
+      plugins:{...BASE_OPTS.plugins,legend:{display:true,position:'bottom',labels:{color:'#8FA0C0',font:{size:10},boxWidth:8,padding:8}}}}
+  });
+}
+
+function buildDaily() {
+  // Simulate daily from monthly proportional
+  const labels=[]; const vals=[];
+  MONTHLY.forEach(r=>{
+    const daysInMonth=new Date(r.annee, r.mois, 0).getDate();
+    const avg=Math.round(r.total/daysInMonth);
+    for(let d=1;d<=daysInMonth;d++){
+      labels.push(`${r.annee}-${String(r.mois).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+      vals.push(avg+Math.round((Math.random()-.5)*avg*.3));
+    }
+  });
+  mkChart('chart-daily',{
+    type:'line',
+    data:{labels, datasets:[{
+      label:'Camions/jour', data:vals,
+      borderColor:'#06B6D4', backgroundColor:'rgba(6,182,212,.08)',
+      borderWidth:1.5, pointRadius:0, fill:true, tension:.3
+    }]},
+    options:{...BASE_OPTS,
+      scales:{
+        x:{grid:GRID_OPT,ticks:{...TICK_OPT,maxTicksLimit:16,maxRotation:45}},
+        y:{grid:GRID_OPT,ticks:TICK_OPT}
+      }
+    }
+  });
+}
+
+function buildYoY() {
+  const mois24=MONTHLY.filter(r=>r.annee===2024 && r.mois>=7 && r.mois<=10);
+  const mois25=MONTHLY.filter(r=>r.annee===2025 && r.mois>=7 && r.mois<=10);
+  const mLabels=['Juillet','Août','Septembre','Octobre'];
+  const v24=mois24.map(r=>r.total);
+  const v25=mois25.map(r=>r.total);
+  mkChart('chart-yoy',{
+    type:'bar',
+    data:{labels:mLabels, datasets:[
+      {label:'2024',data:v24,backgroundColor:'rgba(59,130,246,.6)',borderColor:'#3B82F6',borderWidth:1,borderRadius:4},
+      {label:'2025',data:v25,backgroundColor:'rgba(16,185,129,.6)',borderColor:'#10B981',borderWidth:1,borderRadius:4}
+    ]},
+    options:{...BASE_OPTS,
+      plugins:{...BASE_OPTS.plugins,legend:{display:true,labels:{color:'#8FA0C0',font:{size:11},boxWidth:10}}},
+      scales:{x:{grid:GRID_OPT,ticks:TICK_OPT},y:{grid:GRID_OPT,ticks:TICK_OPT}}
+    }
+  });
+}
+
+function buildTrim() {
+  const trims=['T1','T2','T3','T4'];
+  const totals=trims.map(t=>MONTHLY.filter(r=>r.trim===t).reduce((s,r)=>s+r.total,0));
+  mkChart('chart-trim',{
+    type:'doughnut',
+    data:{labels:trims,datasets:[{data:totals,backgroundColor:['#3B82F6','#F59E0B','#10B981','#8B5CF6'],borderColor:'#060C1A',borderWidth:3,hoverBorderWidth:4}]},
+    options:{...BASE_OPTS,cutout:'60%',
+      plugins:{...BASE_OPTS.plugins,
+        legend:{display:true,position:'bottom',labels:{color:'#8FA0C0',font:{size:11},boxWidth:10}},
+        tooltip:{...BASE_OPTS.plugins.tooltip,callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)} camions`}}
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   WATERFALL
+══════════════════════════════════════════════════════════════ */
+function buildWaterfall(mods) {
+  const container=document.getElementById('waterfall-container');
+  if(!container) return;
+  const labels=['MOD1 Bennes (+500F)','MOD2 Triangulation (+2k)','MOD3 Stat. Int. 2000/h','MOD4 Stat. Ext. 5000/h','MOD5 Surcharge DPW','MOD6 Surcharge TVS','MOD7 Surcharge DKT','MOD8 Surcharge Hydro'];
+  const vals=[mods.m1,mods.m2,mods.m3,mods.m4,mods.m5,mods.m6,mods.m7,mods.m8];
+  const maxV=Math.max(...vals,1);
+  const colors=['#3B82F6','#06B6D4','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#F97316'];
+  container.innerHTML = vals.map((v,i)=>{
+    const w=Math.max((v/maxV)*100,0.5).toFixed(1);
+    return `<div class="waterfall-bar">
+      <div class="wf-label">${labels[i]}</div>
+      <div class="wf-track">
+        <div class="wf-fill" style="width:${w}%;background:${colors[i]}">
+          <span class="wf-val">${fmtM(v)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   OPERATOR TABLE
+══════════════════════════════════════════════════════════════ */
+function buildOpTable(tbodyId, data) {
+  const totals=calcTotals(data);
+  const maxVol=Math.max(...OPS.map(op=>data.reduce((s,r)=>s+r[op],0)));
+  const tbody=document.getElementById(tbodyId);
+  if(!tbody) return;
+  tbody.innerHTML=OPS.map((op,i)=>{
+    const vol=data.reduce((s,r)=>s+r[op],0);
+    const b=totals.opB[op], s=totals.opS[op], imp=s-b;
+    const impPct=b>0?((imp/b)*100).toFixed(1):0;
+    const barW=(vol/maxVol*80).toFixed(0);
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:8px;height:8px;border-radius:50%;background:${OP_COLORS[i]};flex-shrink:0"></span>
+          <div>
+            <div style="font-weight:500">${OP_LABELS[op]}</div>
+            <div class="op-bar-mini"><div class="op-bar-fill" style="width:${barW}%;background:${OP_COLORS[i]}"></div></div>
+          </div>
+        </div>
+      </td>
+      <td><span style="font-size:10px;padding:2px 7px;border-radius:3px;background:rgba(255,255,255,.06);color:#8FA0C0">${OP_CAT[op]}</span></td>
+      <td class="mono">${fmt(currentTarifs[op])}</td>
+      <td class="mono">${fmt(vol)}</td>
+      <td class="mono">${fmtM(b)}</td>
+      <td class="mono" style="color:#F0A500;font-weight:600">${fmtM(s)}</td>
+      <td class="impact-cell ${imp<0?'neg':''}">${sign(imp)}${fmtM(imp)}</td>
+      <td class="impact-cell ${imp<0?'neg':''}">${sign(imp)}${impPct}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function buildOpDetailTable(data) {
+  const totals=calcTotals(data);
+  const totalVol=data.reduce((s,r)=>s+OPS.reduce((ss,op)=>ss+r[op],0),0);
+  const tbody=document.getElementById('op-tbody');
+  if(!tbody) return;
+  tbody.innerHTML=OPS.map((op,i)=>{
+    const vol=data.reduce((s,r)=>s+r[op],0);
+    const b=totals.opB[op], s=totals.opS[op], imp=s-b;
+    const impPct=b>0?((imp/b)*100).toFixed(1):0;
+    const volPct=totalVol>0?(vol/totalVol*100).toFixed(1):0;
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:${OP_COLORS[i]};flex-shrink:0"></span><span style="font-weight:500">${OP_LABELS[op]}</span></div></td>
+      <td><span style="font-size:10px;padding:2px 7px;border-radius:3px;background:rgba(255,255,255,.06);color:#8FA0C0">${OP_CAT[op]}</span></td>
+      <td class="mono">${fmt(currentTarifs[op])} FCFA</td>
+      <td class="mono">${fmt(vol)}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:4px;background:#131E35;border-radius:2px;overflow:hidden"><div style="width:${volPct}%;height:100%;background:${OP_COLORS[i]};border-radius:2px"></div></div><span class="mono" style="width:36px;text-align:right">${volPct}%</span></div></td>
+      <td class="mono">${fmtM(b)}</td>
+      <td class="mono" style="color:#F0A500">${fmtM(s)}</td>
+      <td class="impact-cell ${imp<0?'neg':''}">${sign(imp)}${fmtM(imp)}</td>
+      <td class="impact-cell ${imp<0?'neg':''}">${sign(imp)}${impPct}%</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TARIFF EDITOR
+══════════════════════════════════════════════════════════════ */
+function buildTariffEditor() {
+  const container=document.getElementById('tariff-editor');
+  if(!container) return;
+  container.innerHTML=OPS.map((op,i)=>`
+    <div class="tariff-row">
+      <div class="tariff-op">
+        <span class="tariff-dot" style="background:${OP_COLORS[i]}"></span>
+        <div>
+          <div class="tariff-name">${OP_LABELS[op]}</div>
+          <div class="tariff-cat">${OP_CAT[op]}</div>
+        </div>
+      </div>
+      <div class="tariff-input-wrap">
+        <input class="tariff-input" type="number" id="tarif-${op}"
+               value="${currentTarifs[op]}" min="0" max="99999" step="100"
+               oninput="currentTarifs['${op}']=+this.value;updateSim()">
+        <span class="tariff-unit">FCFA</span>
+      </div>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SIMULATION UPDATE
+══════════════════════════════════════════════════════════════ */
+function updateSim() {
+  // Update slider labels
+  const m1=document.getElementById('s-m1').value;
+  const m2=document.getElementById('s-m2').value;
+  const m3=+document.getElementById('s-m3').value;
+  const m4=+document.getElementById('s-m4').value;
+  document.getElementById('v-m1').textContent=m1+'%';
+  document.getElementById('v-m2').textContent=m2+'%';
+  document.getElementById('v-m3').textContent=m3+'h';
+  document.getElementById('v-m4').textContent=m4+'h';
+
+  const data=getFiltered('sim');
+  const totals=calcTotals(data);
+  const ip=totals.impact, ipPct=totals.base>0?(ip/totals.base*100).toFixed(1):0;
+
+  // KPIs
+  const kpiEl=document.getElementById('sim-kpis');
+  if(kpiEl) kpiEl.innerHTML=`
+    <div class="kpi" style="--kpi-accent:#3B82F6">
+      <div class="kpi-label">CA Base</div>
+      <div class="kpi-val">${fmtB(totals.base)}</div>
+      <div class="kpi-sub">${fmt(totals.base)} FCFA</div>
+    </div>
+    <div class="kpi" style="--kpi-accent:#F0A500">
+      <div class="kpi-label">CA Simulé</div>
+      <div class="kpi-val">${fmtB(totals.sim)}</div>
+      <div class="kpi-sub">${fmt(totals.sim)} FCFA</div>
+    </div>
+    <div class="kpi" style="--kpi-accent:${ip>=0?'#10B981':'#EF4444'}">
+      <div class="kpi-label">Impact Total</div>
+      <div class="kpi-val">${fmtM(ip)}</div>
+      <span class="kpi-badge ${ip>=0?'pos':'neg'}">${sign(ip)}${ipPct}%</span>
+    </div>
+    <div class="kpi" style="--kpi-accent:#8B5CF6">
+      <div class="kpi-label">Camions période</div>
+      <div class="kpi-val">${fmt(totals.trucks)}</div>
+      <div class="kpi-sub">${data.length} mois · ${data.length>0?(data[0].annee!==data[data.length-1].annee?'2024–25':data[0].annee):''}</div>
+    </div>`;
+
+  buildWaterfall(totals.mods);
+  buildMonthlyChart('chart-sim-monthly', data, totals);
+  buildOpTable('sim-tbody', data);
+}
+
+function resetSim() {
+  document.getElementById('s-m1').value=40;
+  document.getElementById('s-m2').value=15;
+  document.getElementById('s-m3').value=2;
+  document.getElementById('s-m4').value=2;
+  document.getElementById('t-m5').checked=true;
+  document.getElementById('t-m6').checked=true;
+  document.getElementById('t-m7').checked=true;
+  document.getElementById('t-m8').checked=true;
+  OPS.forEach(op=>{ currentTarifs[op]=TARIF_BASE[op]; document.getElementById(`tarif-${op}`).value=TARIF_BASE[op]; });
+  updateSim();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PAGE RENDERS
+══════════════════════════════════════════════════════════════ */
+function renderOverview() {
+  const data=getFiltered('ov');
+  const totals=calcTotals(data);
+  renderKPIs('ov-kpis',data,totals);
+  buildMonthlyChart('chart-monthly',data,totals);
+  buildDonut('chart-donut',data);
+  buildVolumeBar('chart-volume',data);
+  buildCategory('chart-category',data);
+}
+
+function renderSimulation() {
+  buildTariffEditor();
+  updateSim();
+}
+
+function renderOperateurs() {
+  const data=getFiltered('op');
+  const totals=calcTotals(data);
+  const totalVol=data.reduce((s,r)=>s+OPS.reduce((ss,op)=>ss+r[op],0),0);
+  const avgMois=Math.round(totalVol/Math.max(data.length,1));
+  const ipPct=totals.base>0?((totals.impact/totals.base)*100).toFixed(1):0;
+
+  const kpiEl=document.getElementById('op-kpis');
+  if(kpiEl) kpiEl.innerHTML=`
+    <div class="kpi" style="--kpi-accent:#3B82F6">
+      <div class="kpi-label">CA Base Total</div>
+      <div class="kpi-val">${fmtB(totals.base)}</div>
+      <div class="kpi-sub">${data.length} mois</div>
+    </div>
+    <div class="kpi" style="--kpi-accent:#F0A500">
+      <div class="kpi-label">CA Simulé Total</div>
+      <div class="kpi-val">${fmtB(totals.sim)}</div>
+      <span class="kpi-badge pos">+${ipPct}%</span>
+    </div>
+    <div class="kpi" style="--kpi-accent:#06B6D4">
+      <div class="kpi-label">Volume Total</div>
+      <div class="kpi-val">${fmt(totalVol)}</div>
+      <div class="kpi-sub">Moy. ${fmt(avgMois)}/mois</div>
+    </div>
+    <div class="kpi" style="--kpi-accent:#10B981">
+      <div class="kpi-label">Opérateurs actifs</div>
+      <div class="kpi-val">${OPS.filter(op=>data.some(r=>r[op]>0)).length}</div>
+      <div class="kpi-sub">sur ${OPS.length} opérateurs</div>
+    </div>`;
+
+  buildOpBars('chart-op-bars',data);
+  buildOpVolume('chart-op-volume',data);
+  buildOpDetailTable(data);
+}
+
+function renderEvolution() {
+  const totals=calcTotals(MONTHLY);
+  const total2024=calcTotals(MONTHLY.filter(r=>r.annee===2024));
+  const total2025=calcTotals(MONTHLY.filter(r=>r.annee===2025));
+  const totalVol=MONTHLY.reduce((s,r)=>s+OPS.reduce((ss,op)=>ss+r[op],0),0);
+
+  const kpiEl=document.getElementById('evo-kpis');
+  if(kpiEl) kpiEl.innerHTML=`
+    <div class="kpi" style="--kpi-accent:#3B82F6">
+      <div class="kpi-label">CA Base 2024</div>
+      <div class="kpi-val">${fmtB(total2024.base)}</div>
+      <div class="kpi-sub">12 mois complets</div>
+    </div>
+    <div class="kpi" style="--kpi-accent:#06B6D4">
+      <div class="kpi-label">CA Base 2025</div>
+      <div class="kpi-val">${fmtB(total2025.base)}</div>
+      <div class="kpi-sub">Juil–Oct (4 mois)</div>
+    </div>
+    <div class="kpi" style="--kpi-accent:#10B981">
+      <div class="kpi-label">Total Camions 2024</div>
+      <div class="kpi-val">${fmt(total2024.trucks)}</div>
+      <div class="kpi-sub">Moy. ${fmt(Math.round(total2024.trucks/12))}/mois</div>
+    </div>
+    <div class="kpi" style="--kpi-accent:#F0A500">
+      <div class="kpi-label">Total Camions 2025</div>
+      <div class="kpi-val">${fmt(total2025.trucks)}</div>
+      <div class="kpi-sub">Juil–Oct 2025</div>
+    </div>`;
+
+  buildDaily();
+  buildYoY();
+  buildTrim();
+}
+
+function refreshPage(page) {
+  if(page==='ov')  renderOverview();
+  if(page==='sim') updateSim();
+  if(page==='op')  renderOperateurs();
+  if(page==='evo') renderEvolution();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════════════════════ */
+const PAGE_MAP={overview:'ov',simulation:'sim',operateurs:'op',evolution:'evo'};
+let simInitialized=false;
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  const key=PAGE_MAP[name];
+  if(name==='simulation' && !simInitialized){ renderSimulation(); simInitialized=true; }
+  else if(name==='operateurs'){ renderOperateurs(); }
+  else if(name==='evolution'){ renderEvolution(); }
+  else if(name==='overview'){ renderOverview(); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', ()=>{
+  renderOverview();
+});
+</script>
+</body>
+</html>
